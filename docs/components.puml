@@ -1,0 +1,28 @@
+@startuml
+'https://plantuml.com/component-diagram
+
+database "Event Store" as ES
+
+database "View Store" as VS {
+    folder Credits
+    folder Purchases
+    Credits --> Purchases
+}
+
+component Broker {
+    folder Events
+    folder Updates
+}
+
+[Client App] --> [Command API]
+[Client App] <--> [Query API]
+[Query API] <--> VS
+
+[Command API] --> Events
+[Events] --> [Event Reducer]
+VS <-- [Event Reducer]
+Events --> ES
+[Event Reducer] --> Updates
+Updates --> [Query API]
+
+@enduml

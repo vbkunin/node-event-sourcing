@@ -1,0 +1,97 @@
+@startuml
+'https://plantuml.com/object-diagram
+
+object "Purchase 1" as P1 {
+    title = "Morning buns with raisins"
+    date = "2022-12-17 10:04:10"
+    location = "43.669356;51.135204"
+    amount = 870
+    currency = "KZT"
+    payer = "vladimir"
+    debtors = "vladimir,ilya,vadim"
+}
+
+object "Credit 1" as C1 {
+    creditor = "vladimir"
+    debtor = "vladimir"
+    amount = 290
+    remains = 0
+    purchase = "Purchase 1"
+    accepted = true
+}
+
+object "Credit 2" as C2 {
+    creditor = "vladimir"
+    debtor = "ilya"
+    amount = 290
+    remains = 0
+    purchase = "Purchase 1"
+    accepted = true
+}
+
+object "Credit 3" as C3 {
+    creditor = "vladimir"
+    debtor = "vadim"
+    amount = 290
+    remains = 290
+    purchase = "Purchase 1"
+    accepted = false
+}
+
+P1 --> C1
+P1 --> C2
+P1 --> C3
+
+object "Purchase 2" as P2 {
+    title = "Cola and lays"
+    date = "2022-12-17 19:19:57"
+    location = "43.669356;51.135204"
+    amount = 1400
+    currency = "KZT"
+    payer = "ilya"
+    debtors = "vladimir,vadim"
+}
+
+object "Credit 4" as C4 {
+    creditor = "ilya"
+    debtor = "vladimir"
+    amount = 700
+    remains = 0
+    purchase = "Purchase 2"
+    accepted = true
+}
+
+object "Credit 5" as C5 {
+    creditor = "ilya"
+    debtor = "vadim"
+    amount = 700
+    remains = 700
+    purchase = "Purchase 2"
+    accepted = false
+}
+
+object "Purchase 3" as P3 {
+    title = "Kefir"
+    date = "2022-12-17 20:47:01"
+    location = "43.669356;51.135204"
+    amount = 500
+    currency = "KZT"
+    payer = "vladimir"
+    debtors = "ilya"
+}
+
+object "Credit 6" as C6 {
+    creditor = "vladimir"
+    debtor = "ilya"
+    amount = 500
+    remains = 90
+    purchase = "Purchase 3"
+    accepted = false
+}
+
+
+P2 --> C4
+P2 --> C5
+P3 --> C6
+
+@enduml

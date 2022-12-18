@@ -1,0 +1,38 @@
+@startuml
+
+' hide the spot
+hide circle
+
+' avoid problems with angled crows feet
+skinparam linetype ortho
+
+entity user {
+    id
+    username
+    first_name
+    last_name
+}
+
+entity purchase {
+    id
+    title
+    date
+    location
+    amount
+    payer
+}
+
+entity credit {
+    id
+    creditor
+    debtor
+    amount
+    remains
+    accepted
+}
+
+purchase ||--|{ credit
+user ||-|{ purchase
+user ||--|{ credit
+
+@enduml
