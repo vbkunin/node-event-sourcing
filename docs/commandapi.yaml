@@ -1,0 +1,101 @@
+openapi: 3.0.3
+info:
+  title: Command API
+  description: Command API
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  /v1/purchase:
+    post:
+      operationId: newPurchase
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseCreate'
+      responses:
+        202:
+          description: Accepted
+        default:
+          description: Unexpected error
+  /v1/purshare/{id}:
+    patch:
+      operationId: updatePurchase
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseUpdate'
+      responses:
+        202:
+          description: Accepted
+        default:
+          description: Unexpected error
+  /v1/payoff-debts:
+    post:
+      operationId: payoffDebts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              description: Debts Ids
+              items:
+                type: string
+                format: uuid
+      responses:
+        202:
+          description: Accepted
+        default:
+          description: Unexpected error
+  /v1/accept-debts:
+    description: "NOTE: Debts can be accepted without payment, in which case the `remains` are simply reset to zero."
+    post:
+      operationId: acceptDebts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              description: Debts Ids
+              items:
+                type: string
+                format: uuid
+      responses:
+        202:
+          description: Accepted
+        default:
+          description: Unexpected error
+components:
+  schemas:
+    PurchaseCreate:
+      type: object
+      properties:
+        title:
+          type: string
+        date:
+          type: string
+          format: date-time
+        amount:
+          type: number
+        payer:
+          type: string
+        debtors:
+          type: array
+          items:
+            type: string
+    PurchaseUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+        date:
+          type: string
+          format: date-time
+
+
