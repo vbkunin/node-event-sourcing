@@ -1,8 +1,10 @@
 import dotenv from 'dotenv'
 import express, { Express } from 'express'
 import { Kafka as KafkaJS } from 'kafkajs'
-import { HTTP, CloudEventV1, Kafka as KafkaCE, CloudEvent, Message } from 'cloudevents'
+import { Kafka as KafkaCE, CloudEvent } from 'cloudevents'
 import { PurchaseCreated, PurchaseUpdateData } from './models.js'
+import { Validator } from 'jsonschema'
+import payoffDebtsSchema from './schemas/payoff-debts.schema.json' assert { type: 'json' } // note: import assertions still are experimental
 
 dotenv.config()
 
@@ -15,6 +17,9 @@ const kafka = new KafkaJS(
 
 const producer = kafka.producer()
 await producer.connect()
+
+const validator = new Validator()
+// validator.addSchema(payoffDebtsSchema, '/v1/schemas/payoff-debts.schema.json')
 
 const app: Express = express()
 const port = process.env.PORT || 3000
@@ -101,25 +106,37 @@ app.patch('/v1/purchase/:id', async (req, res, next) => {
 })
 
 app.post('/v1/payoff-debts', async (req, res, next) => {
-  // todo: validate request body
-  const event = new CloudEvent<string[]>({
-    source: '/',
-    type: 'bwr.debts.paid',
-    data: req.body,
-    datacontenttype: 'application/json',
-  })
-  const kafkaMessage = KafkaCE.structured<string[]>(event)
-  const recordMetadata = await producer.send({
-    topic: 'bwr.purchases',
-    messages: [
-      {
-        value: kafkaMessage.body as string,
-        headers: kafkaMessage.headers,
-        // key: // TODO: add kafka key
-      },
-    ],
-  })
-  res.status(202).json(recordMetadata)
+  try {
+    // NOTE: I would prefer to throw and catch ValidateResultError but there is no declaration of the class (https://github.com/tdegrunt/jsonschema/pull/331)
+    // const validatorResult = validator.validate(req.body, payoffDebtsSchema, { throwFirst: true })
+    const validatorResult = validator.validate(req.body, payoffDebtsSchema)
+    if (!validatorResult.valid) {
+      return res.status(400).json({ message: validatorResult.errors[0].message })
+    }
+
+    const event = new CloudEvent<string[]>({
+      source: '/',
+      type: 'bwr.debts.paid',
+      data: req.body,
+      datacontenttype: 'application/json',
+    })
+    const kafkaMessage = KafkaCE.structured<string[]>(event)
+    const recordMetadata = await producer.send({
+      topic: 'bwr.purchases',
+      messages: [
+        {
+          value: kafkaMessage.body as string,
+          headers: kafkaMessage.headers,
+          // key: // TODO: add kafka key
+        },
+      ],
+    })
+    res.status(202).json(recordMetadata)
+  } catch (e) {
+    // todo: use express error handling
+    return next(e)
+    // return res.status(500).json({ message: 'Internal error' })
+  }
 })
 
 app.post('/v1/accept-debts', async (req, res, next) => {

@@ -39,11 +39,14 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              description: Debts Ids
-              items:
-                type: string
-                format: uuid
+              type: object
+              properties:
+                debts:
+                  description: Debts Ids
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
       responses:
         202:
           description: Accepted
@@ -57,11 +60,14 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              description: Debts Ids
-              items:
-                type: string
-                format: uuid
+              type: object
+              properties:
+                debts:
+                  description: Debts Ids
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
       responses:
         202:
           description: Accepted
