@@ -13,6 +13,6 @@ export interface PurchaseUpdateData {
   date?: Date | string,
 }
 
-export interface DebtPaid {
-  id: string
+export interface Debts {
+  debts: string[]
 }

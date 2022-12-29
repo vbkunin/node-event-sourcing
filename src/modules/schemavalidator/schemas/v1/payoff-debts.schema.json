@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "/schemas/v1/payoff-debts.schema.json",
+  "title": "Debts payoff body schema",
+  "type": "object",
+  "properties": {
+    "debts": {
+      "description": "Ids of paid debts",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "debts"
+  ],
+  "additionalProperties": false
+}

@@ -1,10 +1,10 @@
 import dotenv from 'dotenv'
-import express, { Express } from 'express'
+import express, { Express, Request } from 'express'
 import { Kafka as KafkaJS } from 'kafkajs'
-import { Kafka as KafkaCE, CloudEvent } from 'cloudevents'
-import { PurchaseCreated, PurchaseUpdateData } from './models.js'
-import { Validator } from 'jsonschema'
-import payoffDebtsSchema from './schemas/payoff-debts.schema.json' assert { type: 'json' } // note: import assertions still are experimental
+import { CloudEvent, Kafka as KafkaCE } from 'cloudevents'
+import { Debts, PurchaseCreated, PurchaseUpdateData } from './models.js'
+import { ajv } from './modules/schemavalidator/index.js'
+import { Path } from './path.js'
 
 dotenv.config()
 
@@ -18,16 +18,22 @@ const kafka = new KafkaJS(
 const producer = kafka.producer()
 await producer.connect()
 
-const validator = new Validator()
-// validator.addSchema(payoffDebtsSchema, '/v1/schemas/payoff-debts.schema.json')
-
 const app: Express = express()
 const port = process.env.PORT || 3000
 
 app.use(express.json())
 
 app.use((req, res, next) => {
-  if (!req.body) return res.status(400).send('data is mandatory')
+  if (!req.body) {
+    return res.status(400).send('data is mandatory')
+  }
+  const validate = ajv.getSchema(req.path)
+  if (!validate) {
+    return next(new Error('Validation schema not found'))
+  }
+  if (!validate(req.body)) {
+    return res.status(400).json({ errors: validate.errors })
+  }
   return next()
 })
 // app.use((req, res, next) => {
@@ -44,7 +50,7 @@ app.use((req, res, next) => {
 //   })
 // })
 
-app.post('/v1/purchase', async (req, res, next) => {
+app.post(Path.v1_purchase, async (req, res, next) => {
   if (!req.body.amount || req.body.amount <= 0) return res.status(400).send('amount is mandatory')
   if (!req.body?.date) req.body.date = new Date()
   try {
@@ -78,7 +84,7 @@ app.post('/v1/purchase', async (req, res, next) => {
   }
 })
 
-app.patch('/v1/purchase/:id', async (req, res, next) => {
+app.patch(Path.v1_purchase_id, async (req, res, next) => {
   if (req.body.amount) return res.status(400).send('amount is read-only')
   if (req.body.payer) return res.status(400).send('payer is read-only')
   if (req.body.debtors) return res.status(400).send('debtors are read-only')
@@ -105,19 +111,13 @@ app.patch('/v1/purchase/:id', async (req, res, next) => {
   res.status(202).json(recordMetadata)
 })
 
-app.post('/v1/payoff-debts', async (req, res, next) => {
+app.post([Path.v1_payoff_debts, Path.v1_accept_debts], async (req: Request<any, any, Debts>, res, next) => {
+  const ceType = req.path === Path.v1_payoff_debts ? 'bwr.debts.paid' : 'bwr.debts.accepted'
   try {
-    // NOTE: I would prefer to throw and catch ValidateResultError but there is no declaration of the class (https://github.com/tdegrunt/jsonschema/pull/331)
-    // const validatorResult = validator.validate(req.body, payoffDebtsSchema, { throwFirst: true })
-    const validatorResult = validator.validate(req.body, payoffDebtsSchema)
-    if (!validatorResult.valid) {
-      return res.status(400).json({ message: validatorResult.errors[0].message })
-    }
-
     const event = new CloudEvent<string[]>({
       source: '/',
-      type: 'bwr.debts.paid',
-      data: req.body,
+      type: ceType,
+      data: req.body.debts,
       datacontenttype: 'application/json',
     })
     const kafkaMessage = KafkaCE.structured<string[]>(event)
@@ -137,28 +137,6 @@ app.post('/v1/payoff-debts', async (req, res, next) => {
     return next(e)
     // return res.status(500).json({ message: 'Internal error' })
   }
-})
-
-app.post('/v1/accept-debts', async (req, res, next) => {
-  // todo: validate request body
-  const event = new CloudEvent<string[]>({
-    source: '/',
-    type: 'bwr.debts.accepted',
-    data: req.body,
-    datacontenttype: 'application/json',
-  })
-  const kafkaMessage = KafkaCE.structured<string[]>(event)
-  const recordMetadata = await producer.send({
-    topic: 'bwr.purchases',
-    messages: [
-      {
-        value: kafkaMessage.body as string,
-        headers: kafkaMessage.headers,
-        // key: // TODO: add kafka key
-      },
-    ],
-  })
-  res.status(202).json(recordMetadata)
 })
 
 app.listen(port, () => {
