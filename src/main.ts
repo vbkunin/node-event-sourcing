@@ -1,126 +1,64 @@
 import dotenv from 'dotenv'
-import express, { Express, Request, Response } from 'express'
-import { Kafka as KafkaJS } from 'kafkajs'
-import { CloudEvent, Kafka as KafkaCE } from 'cloudevents'
-import {
-  DebtsBody, ErrorResponseBody,
-  PurchaseCreateBody,
-  PurchaseCreateEventData,
-  PurchaseUpdateBody,
-  PurchaseUpdateEventData,
-} from './models.js'
+import express, { Express, NextFunction, Request, Response } from 'express'
+import { AcceptResponseBody, DebtsBody, ErrorResponseBody, PurchaseCreateBody, PurchaseUpdateBody } from './models.js'
 import { validate, ValidationError } from './modules/schemavalidator/index.js'
 import { Path } from './path.js'
 import { ErrorRequestHandler } from 'express-serve-static-core'
+import { produce } from './modules/kafka/index.js'
+import { EventType, PurchaseCreateEventData, PurchaseUpdateEventData } from './modules/kafka/models.js'
 
 dotenv.config()
-
-const kafka = new KafkaJS(
-  {
-    clientId: 'bwr_producer',
-    brokers: ['localhost:9092'],
-  },
-)
-
-const producer = kafka.producer()
-await producer.connect()
 
 const app: Express = express()
 const port = process.env.PORT || 3000
 
 app.use(express.json())
 
-app.post(Path.v1_purchase_create, async (req: Request<any, any, PurchaseCreateBody>, res, next) => {
+app.post(Path.v1_purchase_create, async (req: Request<any, any, PurchaseCreateBody>, res: Response<AcceptResponseBody>, next: NextFunction) => {
   try {
     // todo: try to find something like named routes instead of this path enums
     validate(Path.v1_purchase_create, req.body)
-    // todo: add a factory for cloudevents
-    const event = new CloudEvent<PurchaseCreateEventData>({
-      source: '/',
-      type: 'bwr.purchase.created',
-      data: {
-        title: 'Untitled purchase',
-        date: new Date(),
-        ...req.body,
-      },
-      datacontenttype: 'application/json',
-      // todo: add schema validation
-      // dataschema: 'https://bws.site/schemas/bwr.purchase.created.json'
+    const recordMetadata = await produce<PurchaseCreateEventData>(EventType.bwr_purchase_created, {
+      title: 'Untitled purchase',
+      date: new Date(),
+      ...req.body,
     })
-    const kafkaMessage = KafkaCE.structured<PurchaseCreateEventData>(event)
-    const recordMetadata = await producer.send({
-      topic: 'bwr.purchases',
-      messages: [
-        {
-          value: kafkaMessage.body as string,
-          headers: kafkaMessage.headers,
-          // key: // TODO: add kafka key
-        },
-      ],
-    })
-
-    res.status(202).setHeader('Retry-After', 30).json(recordMetadata)
+    console.log(recordMetadata) // todo: add logging
+    // const date = new Date(recordMetadata.timestamp) // todo: compute retry-after date from timestamp
+    res.status(202).setHeader('Retry-After', 5).json({ acceptedAt: new Date() })
   } catch (err) {
     next(err)
   }
 })
 
-app.patch(Path.v1_purchase_update, async (req: Request<any, any, PurchaseUpdateBody>, res, next) => {
+app.patch(Path.v1_purchase_update, async (req: Request<{ id: string }, any, PurchaseUpdateBody>, res: Response<AcceptResponseBody>, next: NextFunction) => {
   try {
     validate(Path.v1_purchase_update, req.body)
-    const event = new CloudEvent<PurchaseUpdateEventData>({
-      source: '/',
-      type: 'bwr.purchase.updated',
-      data: { ...req.body, id: req.params.id },
-      datacontenttype: 'application/json',
-      // todo: add schema validation
-      // dataschema: 'https://bws.site/schemas/bwr.purchase.created.json'
+    const recordMetadata = await produce<PurchaseUpdateEventData>(EventType.bwr_purchase_updated, {
+      ...req.body,
+      id: req.params.id,
     })
-    const kafkaMessage = KafkaCE.structured<PurchaseUpdateEventData>(event)
-    const recordMetadata = await producer.send({
-      topic: 'bwr.purchases',
-      messages: [
-        {
-          value: kafkaMessage.body as string,
-          headers: kafkaMessage.headers,
-          // key: // TODO: add kafka key
-        },
-      ],
-    })
-    res.status(202).json(recordMetadata)
+    console.log(recordMetadata)
+    res.status(202).setHeader('Retry-After', 5).json({ acceptedAt: new Date() })
   } catch (e) {
     return next(e)
   }
 })
 
-app.post([Path.v1_debts_payoff, Path.v1_debts_accept], async (req: Request<any, any, DebtsBody>, res, next) => {
+// todo: replace with one path with action: /v1/debts/{action}?
+app.post([Path.v1_debts_payoff, Path.v1_debts_accept], async (req: Request<any, any, DebtsBody>, res: Response<AcceptResponseBody>, next: NextFunction) => {
   try {
     validate(Path.v1_debts_payoff, req.body)
-    const ceType = req.path === Path.v1_debts_payoff ? 'bwr.debts.paid' : 'bwr.debts.accepted'
-    const event = new CloudEvent<string[]>({
-      source: '/',
-      type: ceType,
-      data: req.body.debts,
-      datacontenttype: 'application/json',
-    })
-    const kafkaMessage = KafkaCE.structured<string[]>(event)
-    const recordMetadata = await producer.send({
-      topic: 'bwr.purchases',
-      messages: [
-        {
-          value: kafkaMessage.body as string,
-          headers: kafkaMessage.headers,
-          // key: // TODO: add kafka key
-        },
-      ],
-    })
-    res.status(202).json(recordMetadata)
+    const ceType = req.path === Path.v1_debts_payoff ? EventType.bwr_debts_paid : EventType.bwr_debts_accepted
+    const recordMetadata = await produce(ceType, req.body.debts)
+    console.log(recordMetadata)
+    res.status(202).setHeader('Retry-After', 5).json({ acceptedAt: new Date() })
   } catch (e) {
     return next(e)
   }
 })
 
-const errorHandler: ErrorRequestHandler = (err: Error, req, res: Response<ErrorResponseBody>, next) => {
+const errorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response<ErrorResponseBody>, next: NextFunction) => {
   if (err instanceof ValidationError) {
     return res.status(400).json({ message: err.message, errors: err.errors })
   }
