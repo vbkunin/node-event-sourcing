@@ -13,25 +13,40 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurchaseCreate'
+              $ref: '#/components/schemas/PurchaseCreateBody'
       responses:
         202:
-          description: Accepted
+          $ref: '#/components/responses/202'
+        400:
+          $ref: '#/components/responses/400'
+        500:
+          $ref: '#/components/responses/500'
         default:
-          description: Unexpected error
+          $ref: '#/components/responses/default'
   /v1/purshare/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
     patch:
       operationId: updatePurchase
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurchaseUpdate'
+              $ref: '#/components/schemas/PurchaseUpdateBody'
       responses:
         202:
-          description: Accepted
+          $ref: '#/components/responses/202'
+        400:
+          $ref: '#/components/responses/400'
+        500:
+          $ref: '#/components/responses/500'
         default:
-          description: Unexpected error
+          $ref: '#/components/responses/default'
   /v1/payoff-debts:
     post:
       operationId: payoffDebts
@@ -39,19 +54,16 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                debts:
-                  description: Debts Ids
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
+              $ref: '#/components/schemas/DebtsBody'
       responses:
         202:
-          description: Accepted
+          $ref: '#/components/responses/202'
+        400:
+          $ref: '#/components/responses/400'
+        500:
+          $ref: '#/components/responses/500'
         default:
-          description: Unexpected error
+          $ref: '#/components/responses/default'
   /v1/accept-debts:
     description: "NOTE: Debts can be accepted without payment, in which case the `remains` are simply reset to zero."
     post:
@@ -60,38 +72,42 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                debts:
-                  description: Debts Ids
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
+              $ref: '#/components/schemas/DebtsBody'
       responses:
         202:
-          description: Accepted
+          $ref: '#/components/responses/202'
+        400:
+          $ref: '#/components/responses/400'
+        500:
+          $ref: '#/components/responses/500'
         default:
-          description: Unexpected error
+          $ref: '#/components/responses/default'
 components:
   schemas:
-    PurchaseCreate:
+    PurchaseCreateBody:
       type: object
       properties:
         title:
           type: string
+          minLength: 1
         date:
           type: string
           format: date-time
         amount:
           type: number
+          minimum: 0
+          exclusiveMinimum: true
         payer:
           type: string
+          minLength: 1
         debtors:
           type: array
           items:
             type: string
-    PurchaseUpdate:
+            minItems: 1
+            uniqueItems: true
+      required: [ amount, payer, debtors ]
+    PurchaseUpdateBody:
       type: object
       properties:
         id:
@@ -103,5 +119,46 @@ components:
         date:
           type: string
           format: date-time
-
+    DebtsBody:
+      type: object
+      properties:
+        debts:
+          type: array
+          items:
+            type: string
+            format: uuid
+          uniqueItems: true
+          minItems: 1
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+      required: [ message ]
+  responses:
+    202:
+      description: Accepted
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              acceptedAt:
+                type: string
+                format: date-time
+            required: [ acceptedAt ]
+    400:
+      description: Bad request
+    500:
+      description: Internal error
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
 
