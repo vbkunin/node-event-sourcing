@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/schema",
-  "$id": "/schemas/v1/payoff-debts.schema.json",
-  "title": "Debts payoff body schema",
+  "$id": "/schemas/v1/debts-accept-body.schema.json",
+  "title": "Debts accept body schema",
   "type": "object",
   "properties": {
     "debts": {
-      "description": "Ids of paid debts",
+      "description": "Ids of accepted debts",
       "type": "array",
       "items": {
         "type": "string",

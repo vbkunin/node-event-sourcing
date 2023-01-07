@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "/schemas/v1/purchase-update-body.schema.json",
+  "title": "Purchase update body schema",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "minProperties": 1,
+  "additionalProperties": false
+}

@@ -1,10 +1,17 @@
 import dotenv from 'dotenv'
-import express, { Express, Request } from 'express'
+import express, { Express, Request, Response } from 'express'
 import { Kafka as KafkaJS } from 'kafkajs'
 import { CloudEvent, Kafka as KafkaCE } from 'cloudevents'
-import { Debts, PurchaseCreated, PurchaseUpdateData } from './models.js'
-import { ajv } from './modules/schemavalidator/index.js'
+import {
+  DebtsBody, ErrorResponseBody,
+  PurchaseCreateBody,
+  PurchaseCreateEventData,
+  PurchaseUpdateBody,
+  PurchaseUpdateEventData,
+} from './models.js'
+import { validate, ValidationError } from './modules/schemavalidator/index.js'
 import { Path } from './path.js'
+import { ErrorRequestHandler } from 'express-serve-static-core'
 
 dotenv.config()
 
@@ -23,47 +30,24 @@ const port = process.env.PORT || 3000
 
 app.use(express.json())
 
-app.use((req, res, next) => {
-  if (!req.body) {
-    return res.status(400).send('data is mandatory')
-  }
-  const validate = ajv.getSchema(req.path)
-  if (!validate) {
-    return next(new Error('Validation schema not found'))
-  }
-  if (!validate(req.body)) {
-    return res.status(400).json({ errors: validate.errors })
-  }
-  return next()
-})
-// app.use((req, res, next) => {
-//   let data = ''
-//
-//   req.setEncoding('utf8')
-//   req.on('data', function(chunk) {
-//     data += chunk
-//   })
-//
-//   req.on('end', function() {
-//     req.body = data
-//     next()
-//   })
-// })
-
-app.post(Path.v1_purchase, async (req, res, next) => {
-  if (!req.body.amount || req.body.amount <= 0) return res.status(400).send('amount is mandatory')
-  if (!req.body?.date) req.body.date = new Date()
+app.post(Path.v1_purchase_create, async (req: Request<any, any, PurchaseCreateBody>, res, next) => {
   try {
-    // NOTE: so what are we catching here?
-    const event = new CloudEvent<PurchaseCreated>({
+    // todo: try to find something like named routes instead of this path enums
+    validate(Path.v1_purchase_create, req.body)
+    // todo: add a factory for cloudevents
+    const event = new CloudEvent<PurchaseCreateEventData>({
       source: '/',
       type: 'bwr.purchase.created',
-      data: req.body,
+      data: {
+        title: 'Untitled purchase',
+        date: new Date(),
+        ...req.body,
+      },
       datacontenttype: 'application/json',
       // todo: add schema validation
       // dataschema: 'https://bws.site/schemas/bwr.purchase.created.json'
     })
-    const kafkaMessage = KafkaCE.structured<PurchaseCreated>(event)
+    const kafkaMessage = KafkaCE.structured<PurchaseCreateEventData>(event)
     const recordMetadata = await producer.send({
       topic: 'bwr.purchases',
       messages: [
@@ -75,45 +59,44 @@ app.post(Path.v1_purchase, async (req, res, next) => {
       ],
     })
 
-    res.status(202).json(recordMetadata)
+    res.status(202).setHeader('Retry-After', 30).json(recordMetadata)
   } catch (err) {
-    console.error(err)
-
-    // todo: do not pass raw errors, may contains internal data (connection params etc)
-    res.status(415).header('Content-Type', 'application/json').send(JSON.stringify(err))
+    next(err)
   }
 })
 
-app.patch(Path.v1_purchase_id, async (req, res, next) => {
-  if (req.body.amount) return res.status(400).send('amount is read-only')
-  if (req.body.payer) return res.status(400).send('payer is read-only')
-  if (req.body.debtors) return res.status(400).send('debtors are read-only')
-  // todo: more convenient body validation (schema?)
-  const event = new CloudEvent<PurchaseUpdateData>({
-    source: '/',
-    type: 'bwr.purchase.updated',
-    data: req.body,
-    datacontenttype: 'application/json',
-    // todo: add schema validation
-    // dataschema: 'https://bws.site/schemas/bwr.purchase.created.json'
-  })
-  const kafkaMessage = KafkaCE.structured<PurchaseUpdateData>(event)
-  const recordMetadata = await producer.send({
-    topic: 'bwr.purchases',
-    messages: [
-      {
-        value: kafkaMessage.body as string,
-        headers: kafkaMessage.headers,
-        // key: // TODO: add kafka key
-      },
-    ],
-  })
-  res.status(202).json(recordMetadata)
+app.patch(Path.v1_purchase_update, async (req: Request<any, any, PurchaseUpdateBody>, res, next) => {
+  try {
+    validate(Path.v1_purchase_update, req.body)
+    const event = new CloudEvent<PurchaseUpdateEventData>({
+      source: '/',
+      type: 'bwr.purchase.updated',
+      data: { ...req.body, id: req.params.id },
+      datacontenttype: 'application/json',
+      // todo: add schema validation
+      // dataschema: 'https://bws.site/schemas/bwr.purchase.created.json'
+    })
+    const kafkaMessage = KafkaCE.structured<PurchaseUpdateEventData>(event)
+    const recordMetadata = await producer.send({
+      topic: 'bwr.purchases',
+      messages: [
+        {
+          value: kafkaMessage.body as string,
+          headers: kafkaMessage.headers,
+          // key: // TODO: add kafka key
+        },
+      ],
+    })
+    res.status(202).json(recordMetadata)
+  } catch (e) {
+    return next(e)
+  }
 })
 
-app.post([Path.v1_payoff_debts, Path.v1_accept_debts], async (req: Request<any, any, Debts>, res, next) => {
-  const ceType = req.path === Path.v1_payoff_debts ? 'bwr.debts.paid' : 'bwr.debts.accepted'
+app.post([Path.v1_debts_payoff, Path.v1_debts_accept], async (req: Request<any, any, DebtsBody>, res, next) => {
   try {
+    validate(Path.v1_debts_payoff, req.body)
+    const ceType = req.path === Path.v1_debts_payoff ? 'bwr.debts.paid' : 'bwr.debts.accepted'
     const event = new CloudEvent<string[]>({
       source: '/',
       type: ceType,
@@ -133,11 +116,20 @@ app.post([Path.v1_payoff_debts, Path.v1_accept_debts], async (req: Request<any, 
     })
     res.status(202).json(recordMetadata)
   } catch (e) {
-    // todo: use express error handling
     return next(e)
-    // return res.status(500).json({ message: 'Internal error' })
   }
 })
+
+const errorHandler: ErrorRequestHandler = (err: Error, req, res: Response<ErrorResponseBody>, next) => {
+  if (err instanceof ValidationError) {
+    return res.status(400).json({ message: err.message, errors: err.errors })
+  }
+  // todo: do not pass raw errors, may contains internal data (connection params etc)
+  res.status(500).json({ message: err.message })
+  next(err)
+}
+
+app.use(errorHandler)
 
 app.listen(port, () => {
   console.log(`BWR listening on port ${port}`)

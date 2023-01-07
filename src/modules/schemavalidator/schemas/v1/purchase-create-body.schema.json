@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "/schemas/v1/purchase-create-body.schema.json",
+  "title": "Purchase create body schema",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "amount": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "debtors": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minItems": 1,
+        "uniqueItems": true
+      }
+    },
+    "payer": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "payer", "debtors", "amount"
+  ],
+  "additionalProperties": false
+}
