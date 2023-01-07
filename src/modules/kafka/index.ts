@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import { Kafka as KafkaJS, KafkaConfig, RecordMetadata } from 'kafkajs'
+import { ConnectEvent, DisconnectEvent, Kafka as KafkaJS, KafkaConfig, ProducerConfig, RecordMetadata } from 'kafkajs'
 import { CloudEvent } from 'cloudevents'
 import { EventData, EventType } from './models.js'
 import { Kafka as KafkaCE } from 'cloudevents/dist/message/kafka/index.js'
@@ -9,13 +9,26 @@ dotenv.config()
 const kafkaConfig: KafkaConfig = {
   clientId: process.env.KAFKA_CLIENT_ID,
   brokers: process.env.KAFKA_BROKERS?.split(',') || ['localhost:9092'],
+  retry: {
+    retries: 0,
+  },
 }
 const kafka = new KafkaJS(kafkaConfig)
 const DEFAULT_TOPIC = process.env.KAFKA_DEFAULT_TOPIC || 'bwr.purchases'
-const producer = kafka.producer()
-await producer.connect()
+const producerConfig: ProducerConfig = {
+  allowAutoTopicCreation: true,
+}
+const producer = kafka.producer(producerConfig)
+
+producer.connect().catch(e => {
+  console.log('Broker connection error', e)
+})
+producer.on(producer.events.CONNECT, (event: ConnectEvent) => {
+  console.log('Connected to broker', event)
+})
 
 export async function produce<T extends EventData>(type: EventType, data: T, topic: string = DEFAULT_TOPIC) {
+  await producer.connect()
   const event = new CloudEvent<T>({
     source: '/',
     type: type,
