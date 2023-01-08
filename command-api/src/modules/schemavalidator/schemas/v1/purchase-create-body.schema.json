@@ -19,10 +19,10 @@
     "debtors": {
       "type": "array",
       "items": {
-        "type": "string",
-        "minItems": 1,
-        "uniqueItems": true
-      }
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "payer": {
       "type": "string",
@@ -30,7 +30,9 @@
     }
   },
   "required": [
-    "payer", "debtors", "amount"
+    "payer",
+    "debtors",
+    "amount"
   ],
   "additionalProperties": false
 }
