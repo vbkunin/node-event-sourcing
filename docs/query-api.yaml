@@ -1,0 +1,112 @@
+openapi: 3.0.3
+info:
+  title: Query API
+  description: Query API
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:3001'
+paths:
+  /v1/purchase:
+    parameters:
+      - in: query
+        name: payer
+        required: false
+        schema:
+          type: string
+    get:
+      operationId: getPurchases
+      responses:
+        200:
+          description: Requested purchases list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                  # todo:
+                  # pagination:
+                  #   type: object
+        default:
+          $ref: '#/components/schemas/Error'
+  /v1/purchase/{purchaseId}:
+    parameters:
+      - in: path
+        name: purchaseId
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getPurchase
+      responses:
+        200:
+          description: Requested purchase
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entry:
+                    type: object
+        default:
+          $ref: '#/components/schemas/Error'
+  /v1/debts:
+    parameters:
+      - in: query
+        name: creditor
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: debtor
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: accepted
+        required: false
+        schema:
+          type: boolean
+    get:
+      operationId: getDebts
+      responses:
+        200:
+          description: Requested debts list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                  # todo:
+                  # pagination:
+                  #   type: object
+        default:
+          $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+      required: [ message ]
+  responses:
+    400:
+      description: Bad request
+    500:
+      description: Internal error
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
