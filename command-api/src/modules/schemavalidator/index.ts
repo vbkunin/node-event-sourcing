@@ -1,7 +1,7 @@
 import Ajv2019 from 'ajv/dist/2019.js'
 import addFormats from 'ajv-formats'
 import { Path } from '../../path.js'
-import { ErrorObject } from 'ajv/lib/types/index.js'
+import { ErrorObject } from 'ajv/dist/types/index.js'
 import { ValidationError } from 'ajv'
 // note: import assertions still are experimental
 import purchaseCreateBodySchema from './schemas/v1/purchase-create-body.schema.json' assert { type: 'json' }

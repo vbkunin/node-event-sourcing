@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import { ConnectEvent, DisconnectEvent, Kafka as KafkaJS, KafkaConfig, ProducerConfig, RecordMetadata } from 'kafkajs'
+import { ConnectEvent, Kafka as KafkaJS, KafkaConfig, ProducerConfig, RecordMetadata } from 'kafkajs'
 import { CloudEvent } from 'cloudevents'
 import { EventData, EventType } from './models.js'
 import { Kafka as KafkaCE } from 'cloudevents/dist/message/kafka/index.js'

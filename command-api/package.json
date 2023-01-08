@@ -1,5 +1,5 @@
 {
-  "name": "buns-with-raisins",
+  "name": "buns-with-raisins-command-api",
   "version": "0.0.1",
   "main": "index.js",
   "type": "module",
