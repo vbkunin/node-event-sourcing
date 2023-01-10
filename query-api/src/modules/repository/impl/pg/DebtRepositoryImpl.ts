@@ -1,5 +1,5 @@
 import { Debt } from '../../models.js'
-import { RepositoryImpl, PgRepositoryError } from './RepositoryImpl.js'
+import { RepositoryImpl, RepositoryError } from './RepositoryImpl.js'
 import { SearchCondition } from '../../Repository.js'
 
 interface DebtRow {
@@ -78,11 +78,11 @@ export class DebtRepositoryImpl extends RepositoryImpl<Debt, DebtRow, DebtCondit
           parts.push(`debtor.username = $${valueIdx}`)
           break
         default:
-          throw new PgRepositoryError(`Unknown condition key '${key}`)
+          throw new RepositoryError(`${this.constructor.name} – Unknown condition key '${key}`)
       }
     }
     if (parts.length === 0) {
-      throw new PgRepositoryError(`Empty condition ${JSON.stringify(searchCondition)}`)
+      throw new RepositoryError(`${this.constructor.name} – Empty condition ${JSON.stringify(searchCondition)}`)
     }
     const where = parts.join(' AND ')
 

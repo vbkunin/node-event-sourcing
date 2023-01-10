@@ -59,7 +59,7 @@ export abstract class RepositoryImpl<E, R extends QueryResultRow, C extends Sear
   public async getById(id: string): Promise<E> {
     return this.findById(id).then(entry => {
       if (!entry) {
-        throw new PgRepositoryNotFoundError(`Entry not found: ${id}`)
+        throw new EntryNotFoundRepositoryError(`${this.constructor.name} – Entry not found: ${id}`)
       }
       return entry
     })
@@ -67,6 +67,6 @@ export abstract class RepositoryImpl<E, R extends QueryResultRow, C extends Sear
 
 }
 
-export class PgRepositoryError extends Error {}
+export class RepositoryError extends Error {}
 
-export class PgRepositoryNotFoundError extends PgRepositoryError {}
+export class EntryNotFoundRepositoryError extends RepositoryError {}

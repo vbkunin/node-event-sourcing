@@ -1,5 +1,5 @@
 import { Purchase } from '../../models.js'
-import { RepositoryImpl, PgRepositoryError } from './RepositoryImpl.js'
+import { RepositoryImpl, RepositoryError } from './RepositoryImpl.js'
 import { SearchCondition } from '../../Repository.js'
 
 interface PurchaseRow {
@@ -56,11 +56,11 @@ export class PurchaseRepositoryImpl extends RepositoryImpl<Purchase, PurchaseRow
           parts.push(`payer.username = $${valueIdx}`)
           break
         default:
-          throw new PgRepositoryError(`Unknown condition key '${key}`)
+          throw new RepositoryError(`${this.constructor.name} – Unknown condition key '${key}'`)
       }
     }
     if (parts.length === 0) {
-      throw new PgRepositoryError(`Empty condition ${JSON.stringify(condition)}`)
+      throw new RepositoryError(`${this.constructor.name} – Empty condition ${JSON.stringify(condition)}`)
     }
     const where = parts.join(' AND ')
 
