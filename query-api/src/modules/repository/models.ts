@@ -11,14 +11,14 @@ export interface Purchase {
   payer: User
 }
 
-export interface PurchaseCondition {
-  id?: string,
-  payerId?: string,
-  payerUsername?: string,
-  dateFrom?: Date,
-  dateTo?: Date
-}
-
 export interface Debt {
-
+  id: string,
+  purchaseId: string,
+  purchaseTitle: string,
+  purchaseDate: Date,
+  creditor: User,
+  debtor: User,
+  amount: number,
+  remains: number,
+  accepted: boolean
 }

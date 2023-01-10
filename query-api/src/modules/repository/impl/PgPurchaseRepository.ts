@@ -1,5 +1,5 @@
 import { Pool, QueryConfig } from 'pg'
-import { Purchase, PurchaseCondition } from '../models.js'
+import { Purchase } from '../models.js'
 import { Repository } from '../Repository.js'
 
 interface PurchaseRow {
@@ -11,14 +11,16 @@ interface PurchaseRow {
   payer_username: string
 }
 
-interface CountRow {
-  count: number
+export interface PurchaseCondition {
+  id?: string,
+  payerId?: string,
+  payerUsername?: string,
+  dateFrom?: Date,
+  dateTo?: Date
 }
 
-interface FindParams {
-  condition?: PurchaseCondition,
-  limit?: number | string,
-  offset?: number
+interface CountRow {
+  count: number
 }
 
 export class PgPurchaseRepository implements Repository<Purchase, PurchaseCondition> {
