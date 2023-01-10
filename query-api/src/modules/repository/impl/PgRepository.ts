@@ -50,7 +50,7 @@ export abstract class PgRepository<E, R extends QueryResultRow, C> implements Re
   public async findById(id: string): Promise<E | null> {
     const queryConfig: QueryConfig<[string]> = {
       name: 'findEntryById',
-      text: `${this.getRowsQueryText()} WHERE p.id = $1 LIMIT 1`,
+      text: `${this.getRowsQueryText()} WHERE entry.id = $1 LIMIT 1`,
       values: [id],
     }
     return this.query(queryConfig).then(res => res[0] || null)
@@ -59,8 +59,7 @@ export abstract class PgRepository<E, R extends QueryResultRow, C> implements Re
   public async getById(id: string): Promise<E> {
     return this.findById(id).then(entry => {
       if (!entry) {
-        // todo: replace with specific error class
-        throw new Error(`Entry not found: ${id}`)
+        throw new PgRepositoryNotFoundError(`Entry not found: ${id}`)
       }
       return entry
     })
@@ -69,3 +68,5 @@ export abstract class PgRepository<E, R extends QueryResultRow, C> implements Re
 }
 
 export class PgRepositoryError extends Error {}
+
+export class PgRepositoryNotFoundError extends PgRepositoryError {}

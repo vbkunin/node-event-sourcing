@@ -26,26 +26,26 @@ export interface DebtCondition {
 }
 
 export class PgDebtRepository extends PgRepository<Debt, DebtRow, DebtCondition> {
-  private countQueryText = `SELECT count(debt.id)::numeric::integer AS count
-                            FROM debt
-                                     INNER JOIN purchase ON debt.purchase_id = purchase.id
-                                     INNER JOIN "user" AS creditor ON debt.creditor_id = creditor.id
-                                     INNER JOIN "user" AS debtor ON debt.debtor_id = debtor.id`
-  private rowsQueryText = `SELECT debt.id                              AS id,
-                                  debt.amount::money::numeric::float8  AS amount,
-                                  debt.remains::money::numeric::float8 AS remains,
-                                  debt.accepted                        AS accepted,
-                                  purchase.id                          AS purchase_id,
-                                  purchase.title                       AS purchase_title,
-                                  purchase.date                        AS purchase_date,
-                                  creditor.id                          AS creditor_id,
-                                  creditor.username                    AS creditor_username,
-                                  debtor.id                            AS debtor_id,
-                                  debtor.username                      AS debtor_username
-                           FROM debt
-                                    INNER JOIN purchase ON debt.purchase_id = purchase.id
-                                    INNER JOIN "user" AS creditor ON debt.creditor_id = creditor.id
-                                    INNER JOIN "user" AS debtor ON debt.debtor_id = debtor.id`
+  private countQueryText = `SELECT count(entry.id)::numeric::integer AS count
+                            FROM debt AS entry
+                                     INNER JOIN purchase ON entry.purchase_id = purchase.id
+                                     INNER JOIN "user" AS creditor ON entry.creditor_id = creditor.id
+                                     INNER JOIN "user" AS debtor ON entry.debtor_id = debtor.id`
+  private rowsQueryText = `SELECT entry.id                              AS id,
+                                  entry.amount::money::numeric::float8  AS amount,
+                                  entry.remains::money::numeric::float8 AS remains,
+                                  entry.accepted                        AS accepted,
+                                  purchase.id                       AS purchase_id,
+                                  purchase.title                    AS purchase_title,
+                                  purchase.date                     AS purchase_date,
+                                  creditor.id                       AS creditor_id,
+                                  creditor.username                 AS creditor_username,
+                                  debtor.id                         AS debtor_id,
+                                  debtor.username                   AS debtor_username
+                           FROM debt AS entry
+                                    INNER JOIN purchase ON entry.purchase_id = purchase.id
+                                    INNER JOIN "user" AS creditor ON entry.creditor_id = creditor.id
+                                    INNER JOIN "user" AS debtor ON entry.debtor_id = debtor.id`
 
   protected makeConditionText(searchCondition: DebtCondition): [(string | boolean), Array<any>] {
     const parts: string[] = []
@@ -56,13 +56,13 @@ export class PgDebtRepository extends PgRepository<Debt, DebtRow, DebtCondition>
       valueIdx++
       switch (key) {
         case 'id':
-          parts.push(`debt.id = $${valueIdx}`)
+          parts.push(`entry.id = $${valueIdx}`)
           break
         case 'purchaseId':
-          parts.push(`debt.purchase_id = $${valueIdx}`)
+          parts.push(`entry.purchase_id = $${valueIdx}`)
           break
         case 'accepted':
-          parts.push(`debt.accepted = $${valueIdx}`)
+          parts.push(`entry.accepted = $${valueIdx}`)
           break
         case 'creditorId':
           parts.push(`creditor.id = $${valueIdx}`)

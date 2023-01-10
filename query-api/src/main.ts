@@ -9,4 +9,4 @@ const debtRepo: Repository<Debt, DebtCondition> = new DebtRepository(pool)
 
 debtRepo.find({ creditorUsername: 'vladimir', accepted: false }).then(console.log)
 
-// purchaseRepo.find({ payerUsername: 'vadim' }).then(console.log)
+purchaseRepo.find({ payerUsername: 'vladimir' }).then(console.log)
