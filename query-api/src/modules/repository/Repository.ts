@@ -1,4 +1,4 @@
-export interface Repository<T, C = object> {
+export interface Repository<T, C extends SearchCondition> {
   getCount(condition?: C): Promise<number>
 
   find(condition?: C, limit?: number, offset?: number): Promise<T[]>
@@ -6,4 +6,8 @@ export interface Repository<T, C = object> {
   findById(id: string): Promise<T | null>
 
   getById(id: string): Promise<T>
+}
+
+export interface SearchCondition {
+  id?: string
 }

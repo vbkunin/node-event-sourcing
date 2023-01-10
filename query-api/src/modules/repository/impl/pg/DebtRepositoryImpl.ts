@@ -1,5 +1,6 @@
-import { Debt } from '../models.js'
-import { PgRepository, PgRepositoryError } from './PgRepository.js'
+import { Debt } from '../../models.js'
+import { RepositoryImpl, PgRepositoryError } from './RepositoryImpl.js'
+import { SearchCondition } from '../../Repository.js'
 
 interface DebtRow {
   id: string,
@@ -15,7 +16,7 @@ interface DebtRow {
   accepted: boolean
 }
 
-export interface DebtCondition {
+export interface DebtCondition extends SearchCondition {
   id?: string,
   purchaseId?: string,
   creditorId?: string,
@@ -25,7 +26,7 @@ export interface DebtCondition {
   accepted?: boolean
 }
 
-export class PgDebtRepository extends PgRepository<Debt, DebtRow, DebtCondition> {
+export class DebtRepositoryImpl extends RepositoryImpl<Debt, DebtRow, DebtCondition> {
   private countQueryText = `SELECT count(entry.id)::numeric::integer AS count
                             FROM debt AS entry
                                      INNER JOIN purchase ON entry.purchase_id = purchase.id
@@ -35,13 +36,13 @@ export class PgDebtRepository extends PgRepository<Debt, DebtRow, DebtCondition>
                                   entry.amount::money::numeric::float8  AS amount,
                                   entry.remains::money::numeric::float8 AS remains,
                                   entry.accepted                        AS accepted,
-                                  purchase.id                       AS purchase_id,
-                                  purchase.title                    AS purchase_title,
-                                  purchase.date                     AS purchase_date,
-                                  creditor.id                       AS creditor_id,
-                                  creditor.username                 AS creditor_username,
-                                  debtor.id                         AS debtor_id,
-                                  debtor.username                   AS debtor_username
+                                  purchase.id                           AS purchase_id,
+                                  purchase.title                        AS purchase_title,
+                                  purchase.date                         AS purchase_date,
+                                  creditor.id                           AS creditor_id,
+                                  creditor.username                     AS creditor_username,
+                                  debtor.id                             AS debtor_id,
+                                  debtor.username                       AS debtor_username
                            FROM debt AS entry
                                     INNER JOIN purchase ON entry.purchase_id = purchase.id
                                     INNER JOIN "user" AS creditor ON entry.creditor_id = creditor.id

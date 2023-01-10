@@ -1,7 +1,6 @@
-import { Pool, QueryConfig } from 'pg'
-import { Purchase } from '../models.js'
-import { Repository } from '../Repository.js'
-import { PgRepository, PgRepositoryError } from './PgRepository.js'
+import { Purchase } from '../../models.js'
+import { RepositoryImpl, PgRepositoryError } from './RepositoryImpl.js'
+import { SearchCondition } from '../../Repository.js'
 
 interface PurchaseRow {
   id: string,
@@ -12,7 +11,7 @@ interface PurchaseRow {
   payer_username: string
 }
 
-export interface PurchaseCondition {
+export interface PurchaseCondition extends SearchCondition {
   id?: string,
   payerId?: string,
   payerUsername?: string,
@@ -20,13 +19,13 @@ export interface PurchaseCondition {
   dateTo?: Date
 }
 
-export class PgPurchaseRepository extends PgRepository<Purchase, PurchaseRow, PurchaseCondition> {
+export class PurchaseRepositoryImpl extends RepositoryImpl<Purchase, PurchaseRow, PurchaseCondition> {
   private countQueryText = `SELECT count(entry.id)::numeric::integer AS count
                             FROM purchase AS entry
                                      INNER JOIN "user" AS payer ON entry.payer_id = payer.id`
   private rowsQueryText = `SELECT entry.id                             AS id,
                                   entry.payer_id                       AS payer_id,
-                                  payer.username                   AS payer_username,
+                                  payer.username                       AS payer_username,
                                   entry.title                          AS title,
                                   entry.date                           AS "date",
                                   entry.amount::money::numeric::float8 AS amount

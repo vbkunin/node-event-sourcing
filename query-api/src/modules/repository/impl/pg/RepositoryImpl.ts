@@ -1,11 +1,11 @@
 import { Pool, QueryConfig, QueryResultRow } from 'pg'
-import { Repository } from '../Repository.js'
+import { Repository, SearchCondition } from '../../Repository.js'
 
 interface CountRow {
   count: number
 }
 
-export abstract class PgRepository<E, R extends QueryResultRow, C> implements Repository<E, C> {
+export abstract class RepositoryImpl<E, R extends QueryResultRow, C extends SearchCondition> implements Repository<E, C> {
   private pool: Pool
 
   constructor(pool: Pool) {
