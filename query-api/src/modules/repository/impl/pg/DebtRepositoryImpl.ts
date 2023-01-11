@@ -53,6 +53,7 @@ export class DebtRepositoryImpl extends RepositoryImpl<Debt, DebtRow, DebtCondit
     const values: string[] = []
     let valueIdx = 0
     for (const [key, value] of Object.entries(searchCondition)) {
+      if (value === undefined) continue
       values.push(value)
       valueIdx++
       switch (key) {
@@ -81,10 +82,7 @@ export class DebtRepositoryImpl extends RepositoryImpl<Debt, DebtRow, DebtCondit
           throw new RepositoryError(`${this.constructor.name} – Unknown condition key '${key}`)
       }
     }
-    if (parts.length === 0) {
-      throw new RepositoryError(`${this.constructor.name} – Empty condition ${JSON.stringify(searchCondition)}`)
-    }
-    const where = parts.join(' AND ')
+    const where = parts.length > 0 ? parts.join(' AND ') : true
 
     return [where, values]
   }

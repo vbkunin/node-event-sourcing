@@ -13,6 +13,18 @@ paths:
         required: false
         schema:
           type: string
+      - in: query
+        name: from
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: to
+        required: false
+        schema:
+          type: string
+          format: date-time
     get:
       operationId: getPurchases
       responses:
@@ -54,7 +66,7 @@ paths:
                     $ref: '#/components/schemas/Purchase'
         default:
           $ref: '#/components/schemas/Error'
-  /v1/debts:
+  /v1/debt:
     parameters:
       - in: query
         name: creditor

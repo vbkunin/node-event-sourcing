@@ -15,8 +15,8 @@ export interface PurchaseCondition extends SearchCondition {
   id?: string,
   payerId?: string,
   payerUsername?: string,
-  dateFrom?: Date,
-  dateTo?: Date
+  dateFrom?: Date | string,
+  dateTo?: Date | string
 }
 
 export class PurchaseRepositoryImpl extends RepositoryImpl<Purchase, PurchaseRow, PurchaseCondition> {
@@ -37,6 +37,7 @@ export class PurchaseRepositoryImpl extends RepositoryImpl<Purchase, PurchaseRow
     const values: string[] = []
     let valueIdx = 0
     for (const [key, value] of Object.entries(condition)) {
+      if (value === undefined) continue
       values.push(value)
       valueIdx++
       switch (key) {
@@ -59,10 +60,7 @@ export class PurchaseRepositoryImpl extends RepositoryImpl<Purchase, PurchaseRow
           throw new RepositoryError(`${this.constructor.name} – Unknown condition key '${key}'`)
       }
     }
-    if (parts.length === 0) {
-      throw new RepositoryError(`${this.constructor.name} – Empty condition ${JSON.stringify(condition)}`)
-    }
-    const where = parts.join(' AND ')
+    const where = parts.length > 0 ? parts.join(' AND ') : true
 
     return [where, values]
   }

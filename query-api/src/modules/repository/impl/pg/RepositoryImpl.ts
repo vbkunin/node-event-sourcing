@@ -28,18 +28,17 @@ export abstract class RepositoryImpl<E, R extends QueryResultRow, C extends Sear
   public async find(searchCondition?: C, limit: (number | string) = 'ALL', offset: number = 0): Promise<E[]> {
     const [where, values] = searchCondition ? this.makeConditionText(searchCondition) : [true, []]
     const queryConfig: QueryConfig = {
-      name: 'findEntries',
+      name: `${this.constructor.name}_findEntries`,
       text: `${this.getRowsQueryText()} WHERE ${where} LIMIT ${limit} OFFSET ${offset}`,
       values,
     }
-    // console.log(queryConfig.text)
     return this.query(queryConfig)
   }
 
   public async getCount(condition?: C): Promise<number> {
     const [where, values] = condition ? this.makeConditionText(condition) : [true, []]
     const queryConfig: QueryConfig = {
-      name: 'getEntriesCount',
+      name: `${this.constructor.name}_getEntriesCount`,
       text: `${this.getCountQueryText()} WHERE ${where}`,
       values,
     }
@@ -49,7 +48,7 @@ export abstract class RepositoryImpl<E, R extends QueryResultRow, C extends Sear
 
   public async findById(id: string): Promise<E | null> {
     const queryConfig: QueryConfig<[string]> = {
-      name: 'findEntryById',
+      name: `${this.constructor.name}_findEntryById`,
       text: `${this.getRowsQueryText()} WHERE entry.id = $1 LIMIT 1`,
       values: [id],
     }

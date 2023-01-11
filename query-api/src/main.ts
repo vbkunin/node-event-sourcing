@@ -1,14 +1,16 @@
+import dotenv from 'dotenv'
+import express from 'express'
 import { pool } from './modules/pg/index.js'
-import { Repository, PurchaseRepository, PurchaseCondition, DebtRepository, DebtCondition } from './modules/repository/index.js'
-import { Debt, Purchase } from './modules/repository/models.js'
+import { PurchaseRepository, DebtRepository } from './modules/repository/index.js'
+import { getRoutes } from './router.js'
 
-console.log('Buns With Raisins – Query API')
+dotenv.config()
 
-const purchaseRepo: Repository<Purchase, PurchaseCondition> = new PurchaseRepository(pool)
-const debtRepo: Repository<Debt, DebtCondition> = new DebtRepository(pool)
+const app = express()
 
-debtRepo.find({ creditorUsername: 'vladimir', accepted: false }).then(console.log)
+app.use('/v1/', getRoutes(new PurchaseRepository(pool), new DebtRepository(pool)))
 
-purchaseRepo.find({ payerUsername: 'vladimir' }).then(console.log)
-
-purchaseRepo.getById("ce6331ff-004f-4d63-9c4d-d9e8e6e8d542").then(console.log)
+const port = process.env.PORT || 3001
+app.listen(port, () => {
+  console.log(`Buns With Raisins – Query API is listening on port ${port}`)
+})

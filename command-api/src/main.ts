@@ -11,5 +11,5 @@ app.use('/v1', router)
 
 const port = process.env.PORT || 3000
 app.listen(port, () => {
-  console.log(`BWR listening on port ${port}`)
+  console.log(`Buns With Raisins – Command API is listening on port ${port}`)
 })
