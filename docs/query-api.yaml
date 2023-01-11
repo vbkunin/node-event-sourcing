@@ -25,7 +25,9 @@ paths:
                 properties:
                   entries:
                     type: array
-                  # todo:
+                    items:
+                      $ref: '#/components/schemas/Purchase'
+                  # todo: add pagination
                   # pagination:
                   #   type: object
         default:
@@ -49,7 +51,7 @@ paths:
                 type: object
                 properties:
                   entry:
-                    type: object
+                    $ref: '#/components/schemas/Purchase'
         default:
           $ref: '#/components/schemas/Error'
   /v1/debts:
@@ -81,13 +83,74 @@ paths:
                 properties:
                   entries:
                     type: array
-                  # todo:
+                    items:
+                      $ref: '#/components/schemas/Debt'
+                  # todo: add pagination
                   # pagination:
                   #   type: object
         default:
           $ref: '#/components/schemas/Error'
 components:
   schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+          example: johndoe
+    Purchase:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: Buns with raisins
+        date:
+          type: string
+          format: date-time
+        amount:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          example: 100.5
+        payer:
+          $ref: '#/components/schemas/User'
+    Debt:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        purchaseId:
+          type: string
+          format: uuid
+        purchaseTitle:
+          type: string
+          example: Buns with raisins
+        purchaseDate:
+          type: string
+          format: date-time
+        creditor:
+          $ref: '#/components/schemas/User'
+        debtor:
+          $ref: '#/components/schemas/User'
+        amount:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          example: 33.5
+        remains:
+          type: number
+          minimum: 0
+          example: 0
+        accepted:
+          type: boolean
+          example: true
     Error:
       type: object
       properties:
