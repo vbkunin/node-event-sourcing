@@ -3,36 +3,29 @@ import { Container, CssBaseline } from '@mui/material'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import SingIn from './components/SingIn'
 import User from './models/User'
-import { USERS } from './data'
 import Home from './components/Home'
+import { UserContext } from './context'
 
 const theme = createTheme()
 
 function App() {
 
-  const [user, setUser] = useState<User>()
+  const [user, setUser] = useState<User>({ id: '', username: '' })
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    console.log({
-      username: data.get('username'),
-      password: data.get('password'),
-    })
-
-    setUser(USERS.find(user => user.username === data.get('username') as string))
+  const handleSingIn = (user: User): void => {
+    setUser(user)
   }
 
   return (
     <ThemeProvider theme={theme}>
       <Container component='main' maxWidth='sm'>
         <CssBaseline />
-        {!user
-          ? <SingIn handleSubmit={handleSubmit}></SingIn>
-          : <>
-            <Home user={user}></Home>
-          </>
-        }
+        <UserContext.Provider value={user}>
+          {!user.id
+            ? <SingIn onSignedIn={handleSingIn}></SingIn>
+            : <Home/>
+          }
+        </UserContext.Provider>
       </Container>
     </ThemeProvider>
   )

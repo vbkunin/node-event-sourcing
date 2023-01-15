@@ -1,18 +1,31 @@
-import React from 'react'
-import { Avatar, Box, Typography } from '@mui/material'
-import { DEBTS } from '../data'
+import React, { useContext, useEffect, useState } from 'react'
+import { Avatar, Box, Skeleton, Typography } from '@mui/material'
 import DebtSummaryList from './debts/DebtSummaryList'
 import { DebtUserRoleEnum } from './debts/DebtUserRole'
-import User from '../models/User'
 import FaceIcon from '@mui/icons-material/Face'
+import Debt from '../models/Debt'
+import { UserContext } from '../context'
 
-interface HomeProps {
-  user: User
-}
+export default function Home(): React.ReactElement {
+  const user = useContext(UserContext)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [debts, setDebts] = useState<Debt[]>([])
+  const [credits, setCredits] = useState<Debt[]>([])
 
-export default function Home({ user }: HomeProps): React.ReactElement {
+  useEffect(() => {
+    Promise.all([
+      fetch(`${process.env.REACT_APP_QUERY_API_URL}/v1/debt?accept=false&creditor-id=${user.id}`)
+        .then(res => res.json())
+        .then(json => setCredits(json.entries)),
+      fetch(`${process.env.REACT_APP_QUERY_API_URL}/v1/debt?accept=false&debtor-id=${user.id}`)
+        .then(res => res.json())
+        .then(json => setDebts(json.entries)),
+    ]).then(() => setIsLoading(false))
+
+  }, [user.id])
+
   return (<>
-    <Box sx={{ mt: 3, mb: 5,  display: 'flex', alignItems: 'center' }}>
+    <Box sx={{ mt: 3, mb: 5, display: 'flex', alignItems: 'center' }}>
       <Avatar sx={{ m: 1, bgcolor: 'secondary.main', width: '3em', height: '3em' }} alt='User avatar'>
         <FaceIcon fontSize='large' />
       </Avatar>
@@ -20,17 +33,16 @@ export default function Home({ user }: HomeProps): React.ReactElement {
         Hola, {user.username}!
       </Typography>
     </Box>
-    <Box sx={{ mt: 2, mb: 5 }}>
-      <DebtSummaryList title='You are owed'
-                       currentUserRole={DebtUserRoleEnum.creditor}
-                       currentUser={user}
-                       debts={DEBTS} />
-    </Box>
-    <Box sx={{ mt: 2, mb: 5 }}>
-      <DebtSummaryList title='You owe'
-                       currentUserRole={DebtUserRoleEnum.debtor}
-                       currentUser={user}
-                       debts={DEBTS} />
-    </Box>
+    {isLoading ? (
+      <Skeleton variant='rectangular' height='8em' sx={{ mt: 2, mb: 5}} />
+    ) : (
+      <>
+        <DebtSummaryList title='You are owed' currentUserRole={DebtUserRoleEnum.creditor}
+                         currentUser={user} debts={credits} />
+        <DebtSummaryList title='You owe' currentUserRole={DebtUserRoleEnum.debtor}
+                         currentUser={user} debts={debts} />
+      </>
+    )
+    }
   </>)
 }

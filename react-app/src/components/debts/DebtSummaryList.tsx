@@ -16,19 +16,14 @@ interface DebtSummaryListProps {
 
 // todo: we need to return the summary from the api to avoid
 //  calculating large lists of debts with paginated data.
-export default function DebtSummaryList({
-                                          title,
-                                          currentUser,
-                                          currentUserRole,
-                                          debts,
-                                        }: DebtSummaryListProps): React.ReactElement {
+export default function DebtSummaryList(props: DebtSummaryListProps): React.ReactElement {
   let totalRemains = 0
-  const summary = debts
-    .filter(debt => currentUser.id === debt[currentUserRole].id)
+  const summary = props.debts
+    .filter(debt => props.currentUser.id === debt[props.currentUserRole].id)
     .reduce<{ user: User, remains: number, debtIds: string[] }[]>(
       (summary, debt) => {
         if (!debt.remains || debt.accepted) return summary
-        const debtUser = currentUserRole === DebtUserRoleEnum.creditor ? debt.debtor : debt.creditor
+        const debtUser = props.currentUserRole === DebtUserRoleEnum.creditor ? debt.debtor : debt.creditor
         const entry = summary.find(e => e.user.id === debtUser.id)
         if (!entry) {
           summary.push({ user: debtUser, remains: debt.remains, debtIds: [debt.id] })
@@ -45,9 +40,9 @@ export default function DebtSummaryList({
     console.log('user', debtUserId, actionType, debtIds)
   }
 
-  return (<Box>
+  return (<Box sx={{ mt: 2, mb: 5 }} >
     <Typography component='h2' variant='h5'>
-      {title} {currencyFormatter().format(totalRemains)}
+      {props.title} {currencyFormatter().format(totalRemains)}
     </Typography>
     <List>
       {
@@ -57,7 +52,7 @@ export default function DebtSummaryList({
             debtUser={e.user}
             remains={e.remains}
             debtIds={e.debtIds}
-            actionType={currentUserRole === DebtUserRoleEnum.creditor ? DebtActionEnum.accept : DebtActionEnum.pay}
+            actionType={props.currentUserRole === DebtUserRoleEnum.creditor ? DebtActionEnum.accept : DebtActionEnum.pay}
             handleAction={actionHandler} />,
         )
       }
