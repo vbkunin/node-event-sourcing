@@ -25,10 +25,12 @@ export abstract class RepositoryImpl<E, R extends QueryResultRow, C extends Sear
     return rows.map<E>(this.rowToEntry)
   }
 
-  public async find(searchCondition?: C, limit: (number | string) = 'ALL', offset: number = 0): Promise<E[]> {
+  public async find(searchCondition?: C, limit: (number | string) = 'ALL', offset = 0): Promise<E[]> {
     const [where, values] = searchCondition ? this.makeConditionText(searchCondition) : [true, []]
     const queryConfig: QueryConfig = {
-      name: `${this.constructor.name}_findEntries`,
+      // fixme: Error: Prepared statements must be unique - 'DebtRepositoryImpl_findEntries' was used for a different statement
+      //  Is this because of WHERE changing?
+      // name: `${this.constructor.name}_findEntries`,
       text: `${this.getRowsQueryText()} WHERE ${where} LIMIT ${limit} OFFSET ${offset}`,
       values,
     }
