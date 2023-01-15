@@ -1,8 +1,8 @@
-import React, { useContext } from 'react'
+import React, { useState } from 'react'
 import logo from './../logo.svg'
 import { Avatar, Box, Typography, TextField, Button, Grid, Link } from '@mui/material'
-import { UserContext } from '../context'
 import User from '../models/User'
+import Client, { ClientError } from '../api/Client'
 
 interface SignInProps {
   onSignedIn: (user: User) => void
@@ -10,20 +10,24 @@ interface SignInProps {
 
 function SignIn(props: SignInProps): React.ReactElement {
 
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setIsLoading(true)
     const data = new FormData(event.currentTarget)
-    fetch(`${process.env.REACT_APP_QUERY_API_URL}/v1/user/${data.get('username')}/login`)
-      .then(res => {
-        if (res.status !== 200) {
-          return Promise.reject()
+    const username = data.get('username') as string
+    Client.authUser(username)
+      .then(props.onSignedIn)
+      .catch(err => {
+        // todo: toast
+        if (err instanceof ClientError) {
+          console.log(err.error.message)
+        } else {
+          console.log('Something went wrong...')
         }
-        return res
       })
-      .then(res => res.json())
-      .then(res => {
-        props.onSignedIn(res.entry as User)
-      })
+      .finally(() => setIsLoading(false))
   }
 
   return (
@@ -41,7 +45,7 @@ function SignIn(props: SignInProps): React.ReactElement {
                    autoComplete='username' autoFocus />
         <TextField margin='normal' required fullWidth name='password' label='Password' type='password' id='password'
                    autoComplete='current-password' />
-        <Button type='submit' fullWidth variant='contained' sx={{ mt: 3, mb: 2 }}>
+        <Button type='submit' fullWidth variant='contained' sx={{ mt: 3, mb: 2 }} disabled={isLoading}>
           Sign In
         </Button>
         <Grid container>
