@@ -1,5 +1,5 @@
 import React from 'react'
-import Debt from '../models/Debt'
+import Debt from '../../models/Debt'
 import { Box, List, Typography } from '@mui/material'
 import DebtListItem from './DebtListItem'
 

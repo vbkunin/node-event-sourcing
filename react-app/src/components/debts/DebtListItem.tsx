@@ -7,6 +7,7 @@ import {
   ListItemText,
 } from '@mui/material'
 import { AttachMoney, Done, DoneAll, HourglassBottom, PriceCheck } from '@mui/icons-material'
+import { currencyFormatter } from '../../helpers/formatters'
 
 interface DebtListItemProps {
   id: string
@@ -34,11 +35,11 @@ export default function DebtListItem(props: DebtListItemProps): React.ReactEleme
       ? <Done color='warning' />
       : <HourglassBottom color='primary' />
 
-  const primaryText = `${props.amount} – ${props.purchase}`
+  const primaryText = `${currencyFormatter().format(props.amount)} – ${props.purchase}`
   let secondaryText = `${props.date.toLocaleDateString()} ${props.date.toLocaleTimeString()}`
-  // if (props.creditor && props.debtor) {
-  //   secondaryText += ` ${props.debtor} owes ${props.creditor}`
-  // }
+  if (props.creditor && props.debtor) {
+    secondaryText += ` ${props.debtor} owes ${props.creditor}`
+  }
 
   return (
     <ListItem secondaryAction={action}>

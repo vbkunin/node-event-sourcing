@@ -1,8 +1,9 @@
 import React from 'react'
 import { Avatar, IconButton, ListItem, ListItemIcon, ListItemText } from '@mui/material'
-import User from '../models/User'
+import User from '../../models/User'
 import { AttachMoney, PriceCheck, ReceiptLong } from '@mui/icons-material'
 import { DebtActionEnum, DebtActionType } from './DebtActionType'
+import { currencyFormatter } from '../../helpers/formatters'
 
 interface DebtSummaryItemProps {
   debtUser: User
@@ -23,7 +24,7 @@ export default function DebtSummaryListItem(props: DebtSummaryItemProps): React.
       <ListItemIcon>
         <Avatar><ReceiptLong /></Avatar>
       </ListItemIcon>
-      <ListItemText primary={`${props.remains} – ${props.debtUser.username}`}
+      <ListItemText primary={`${currencyFormatter().format(props.remains)} – ${props.debtUser.username}`}
                     secondary={`${props.debtIds.length} debt(s)`} />
     </ListItem>
   )

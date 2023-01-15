@@ -1,10 +1,11 @@
 import React from 'react'
-import Debt from '../models/Debt'
+import Debt from '../../models/Debt'
 import { Box, List, Typography } from '@mui/material'
-import User from '../models/User'
+import User from '../../models/User'
 import DebtSummaryListItem from './DebtSummaryListItem'
 import { DebtActionEnum, DebtActionType } from './DebtActionType'
 import { DebtUserRole, DebtUserRoleEnum } from './DebtUserRole'
+import { currencyFormatter } from '../../helpers/formatters'
 
 interface DebtSummaryListProps {
   title: string
@@ -21,6 +22,7 @@ export default function DebtSummaryList({
                                           currentUserRole,
                                           debts,
                                         }: DebtSummaryListProps): React.ReactElement {
+  let totalRemains = 0
   const summary = debts
     .filter(debt => currentUser.id === debt[currentUserRole].id)
     .reduce<{ user: User, remains: number, debtIds: string[] }[]>(
@@ -34,9 +36,10 @@ export default function DebtSummaryList({
           entry.remains += debt.remains
           entry.debtIds.push(debt.id)
         }
+        totalRemains += debt.remains
         return summary
       }, [])
-  console.log(summary)
+  // console.log(summary)
 
   const actionHandler = (debtUserId: string, actionType: DebtActionType, debtIds: string[]) => {
     console.log('user', debtUserId, actionType, debtIds)
@@ -44,7 +47,7 @@ export default function DebtSummaryList({
 
   return (<Box>
     <Typography component='h2' variant='h5'>
-      {title}
+      {title} {currencyFormatter().format(totalRemains)}
     </Typography>
     <List>
       {
