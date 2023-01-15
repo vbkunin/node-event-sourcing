@@ -1,5 +1,6 @@
 import { Pool, QueryConfig, QueryResultRow } from 'pg'
 import { Repository, SearchCondition } from '../../Repository.js'
+import md5 from 'md5'
 
 interface CountRow {
   count: number
@@ -27,11 +28,10 @@ export abstract class RepositoryImpl<E, R extends QueryResultRow, C extends Sear
 
   public async find(searchCondition?: C, limit: (number | string) = 'ALL', offset = 0): Promise<E[]> {
     const [where, values] = searchCondition ? this.makeConditionText(searchCondition) : [true, []]
+    const text = `${this.getRowsQueryText()} WHERE ${where} LIMIT ${limit} OFFSET ${offset}`
     const queryConfig: QueryConfig = {
-      // fixme: Error: Prepared statements must be unique - 'DebtRepositoryImpl_findEntries' was used for a different statement
-      //  Is this because of WHERE changing?
-      // name: `${this.constructor.name}_findEntries`,
-      text: `${this.getRowsQueryText()} WHERE ${where} LIMIT ${limit} OFFSET ${offset}`,
+      name: `${this.constructor.name}_findEntries_${md5(text)}`,
+      text,
       values,
     }
     return this.query(queryConfig)
@@ -39,9 +39,10 @@ export abstract class RepositoryImpl<E, R extends QueryResultRow, C extends Sear
 
   public async getCount(condition?: C): Promise<number> {
     const [where, values] = condition ? this.makeConditionText(condition) : [true, []]
+    const text = `${this.getCountQueryText()} WHERE ${where}`
     const queryConfig: QueryConfig = {
-      name: `${this.constructor.name}_getEntriesCount`,
-      text: `${this.getCountQueryText()} WHERE ${where}`,
+      name: `${this.constructor.name}_getEntriesCount_${md5(text)}`,
+      text,
       values,
     }
     const { rows } = await this.pool.query<CountRow>(queryConfig)
@@ -49,9 +50,10 @@ export abstract class RepositoryImpl<E, R extends QueryResultRow, C extends Sear
   }
 
   public async findById(id: string): Promise<E | null> {
+    const text = `${this.getRowsQueryText()} WHERE entry.id = $1 LIMIT 1`
     const queryConfig: QueryConfig<[string]> = {
-      name: `${this.constructor.name}_findEntryById`,
-      text: `${this.getRowsQueryText()} WHERE entry.id = $1 LIMIT 1`,
+      name: `${this.constructor.name}_findEntryById_${md5(text)}`,
+      text,
       values: [id],
     }
     return this.query(queryConfig).then(res => res[0] || null)
