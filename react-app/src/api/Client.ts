@@ -9,6 +9,10 @@ interface SingleResponseBody<T> {
   entry: T
 }
 
+interface AcceptedResponseBody {
+  acceptedAt: string|Date
+}
+
 interface ErrorResponseBody {
   message: string,
   error?: Array<object>
@@ -28,7 +32,7 @@ export class ClientError extends Error {
 }
 
 async function validateResponse(res: Response): Promise<Response> {
-  if (res.status !== 200) {
+  if (!res.ok) {
     const error: ErrorResponseBody = await res.json()
     throw new ClientError(error.message, error)
   }
@@ -61,5 +65,37 @@ export async function getUserDebts(user: User, includeAccepted = false): Promise
   return body.entries
 }
 
-const Client = { authUser, getUserCredits, getUserDebts }
+export async function payoffDebts(user: User, debts: Debt[]): Promise<boolean> {
+  const data = { debts: debts.map<string>(debt => debt.id) }
+
+  const res: Response = await fetch(`${process.env.REACT_APP_COMMAND_API_URL}/v1/payoff-debts`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  }).then(validateResponse)
+
+  const body: AcceptedResponseBody = await res.json()
+
+  return !!body.acceptedAt
+}
+
+export async function acceptDebts(user: User, debts: Debt[]): Promise<boolean> {
+  const data = { debts: debts.map<string>(debt => debt.id) }
+
+  const res: Response = await fetch(`${process.env.REACT_APP_COMMAND_API_URL}/v1/accept-debts`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  }).then(validateResponse)
+
+  const body: AcceptedResponseBody = await res.json()
+
+  return !!body.acceptedAt
+}
+
+const Client = { authUser, getUserCredits, getUserDebts, payoffDebts, acceptDebts }
 export default Client

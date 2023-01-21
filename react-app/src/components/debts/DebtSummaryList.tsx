@@ -6,6 +6,7 @@ import DebtSummaryListItem from './DebtSummaryListItem'
 import { DebtActionEnum, DebtActionType } from './DebtActionType'
 import { DebtUserRole, DebtUserRoleEnum } from './DebtUserRole'
 import { currencyFormatter } from '../../helpers/formatters'
+import Client from '../../api/Client'
 
 interface DebtSummaryListProps {
   title: string
@@ -36,8 +37,18 @@ export default function DebtSummaryList(props: DebtSummaryListProps): React.Reac
       }, [])
   // console.log(summary)
 
-  const actionHandler = (debtUserId: string, actionType: DebtActionType, debtIds: string[]) => {
-    console.log('user', debtUserId, actionType, debtIds)
+  const actionHandler = (debtUser: User, actionType: DebtActionType, debtIds: string[], onSuccess: () => void) => {
+    // console.log('user', debtUser.id, actionType, debtIds)
+    const debtsForAction: Debt[] = props.debts.filter(debt => debtIds.includes(debt.id));
+    if (actionType === DebtActionEnum.pay) {
+      Client.payoffDebts(debtUser, debtsForAction)
+        .then(res => console.log('Paid', debtIds, res))
+        .then(onSuccess)
+    } else if (actionType === DebtActionEnum.accept) {
+      Client.acceptDebts(debtUser, debtsForAction)
+        .then(res => console.log('Accepted', debtIds, res))
+        .then(onSuccess)
+    }
   }
 
   return (<Box sx={{ mt: 2, mb: 5 }} >

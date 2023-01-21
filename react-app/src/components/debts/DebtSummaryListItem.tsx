@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Avatar, IconButton, ListItem, ListItemIcon, ListItemText } from '@mui/material'
 import User from '../../models/User'
 import { AttachMoney, PriceCheck, ReceiptLong } from '@mui/icons-material'
@@ -10,17 +10,20 @@ interface DebtSummaryItemProps {
   remains: number
   actionType: DebtActionType
   debtIds: string[]
-  handleAction: (userId: string, acton: DebtActionType, debtIds: string[]) => void
+  handleAction: (user: User, acton: DebtActionType, debtIds: string[], onSuccess: () => void) => void
 }
 
 export default function DebtSummaryListItem(props: DebtSummaryItemProps): React.ReactElement {
-  const actionTitle = props.actionType === DebtActionEnum.pay ? 'Pay' : 'Accept'
+  const [disabled, setDisabled] = useState(false)
+
+  const actionTitle = props.actionType === DebtActionEnum.pay ? 'Pay off' : 'Accept'
   const actionIcon = props.actionType === DebtActionEnum.pay ? <AttachMoney /> : <PriceCheck />
-  const action = <IconButton title={actionTitle}
-                             onClick={() => props.handleAction(props.debtUser.id, props.actionType, props.debtIds)}>{actionIcon}</IconButton>
+  const clickHandler = () => props.handleAction(props.debtUser, props.actionType, props.debtIds, () => setDisabled(true))
+  const action = <IconButton title={actionTitle} disabled={disabled}
+                             onClick={clickHandler}>{actionIcon}</IconButton>
 
   return (
-    <ListItem secondaryAction={action}>
+    <ListItem secondaryAction={action} disabled={disabled}>
       <ListItemIcon>
         <Avatar><ReceiptLong /></Avatar>
       </ListItemIcon>
