@@ -65,6 +65,14 @@ export async function getUserDebts(user: User, includeAccepted = false): Promise
   return body.entries
 }
 
+export async function getUsers(): Promise<User[]> {
+  const res: Response = await fetch(`${process.env.REACT_APP_QUERY_API_URL}/v1/user`)
+    .then(validateResponse)
+  const body: ListResponseBody<User> = await res.json()
+
+  return body.entries
+}
+
 export async function payoffDebts(user: User, debts: Debt[]): Promise<boolean> {
   const data = { debts: debts.map<string>(debt => debt.id) }
 
@@ -97,5 +105,5 @@ export async function acceptDebts(user: User, debts: Debt[]): Promise<boolean> {
   return !!body.acceptedAt
 }
 
-const Client = { authUser, getUserCredits, getUserDebts, payoffDebts, acceptDebts }
+const Client = { authUser, getUsers, getUserCredits, getUserDebts, payoffDebts, acceptDebts }
 export default Client

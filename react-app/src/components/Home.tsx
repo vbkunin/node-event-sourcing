@@ -7,12 +7,18 @@ import Debt from '../models/Debt'
 import { UserContext } from '../context'
 import Client, { ClientError } from '../api/Client'
 import User from '../models/User'
+import NewPurchase from './NewPurchase'
 
 export default function Home(): React.ReactElement {
   const user = useContext<User>(UserContext)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [users, setUsers] = useState<User[]>([])
   const [debts, setDebts] = useState<Debt[]>([])
   const [credits, setCredits] = useState<Debt[]>([])
+
+  useEffect(() => {
+    Client.getUsers().then(setUsers)
+  }, [])
 
   useEffect(() => {
     Promise.all([
@@ -50,5 +56,6 @@ export default function Home(): React.ReactElement {
       </>
     )
     }
+    <NewPurchase users={users} currentUser={user}></NewPurchase>
   </>)
 }
