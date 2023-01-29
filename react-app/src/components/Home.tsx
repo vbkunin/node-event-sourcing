@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Avatar, Box, Skeleton, Typography } from '@mui/material'
+import { Avatar, Box, Button, Fab, Skeleton, Typography } from '@mui/material'
 import DebtSummaryList from './debts/DebtSummaryList'
 import { DebtUserRoleEnum } from './debts/DebtUserRole'
 import FaceIcon from '@mui/icons-material/Face'
@@ -8,10 +8,12 @@ import { UserContext } from '../context'
 import Client, { ClientError } from '../api/Client'
 import User from '../models/User'
 import NewPurchase from './NewPurchase'
+import { AddShoppingCart, Delete } from '@mui/icons-material'
 
 export default function Home(): React.ReactElement {
   const user = useContext<User>(UserContext)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isPurchaseAdding, setIsPurchaseAdding] = useState<boolean>(false)
   const [users, setUsers] = useState<User[]>([])
   const [debts, setDebts] = useState<Debt[]>([])
   const [credits, setCredits] = useState<Debt[]>([])
@@ -47,7 +49,7 @@ export default function Home(): React.ReactElement {
     </Box>
     {isLoading ? (
       <Skeleton variant='rectangular' height='8em' sx={{ mt: 2, mb: 5 }} />
-    ) : (
+    ) : !isPurchaseAdding && (
       <>
         <DebtSummaryList title='You are owed' currentUserRole={DebtUserRoleEnum.creditor}
                          currentUser={user} debts={credits} />
@@ -56,6 +58,21 @@ export default function Home(): React.ReactElement {
       </>
     )
     }
-    <NewPurchase users={users} currentUser={user}></NewPurchase>
+    {isPurchaseAdding ? (<>
+      <NewPurchase users={users} currentUser={user}></NewPurchase>
+      <Button type='button' fullWidth variant='text' color='error'
+              size='large'
+              startIcon={<Delete/>}
+              onClick={() => setIsPurchaseAdding(false)}>
+        Cancel
+      </Button>
+    </>) : (
+      <Box sx={{ display: 'flex', justifyContent: 'right'}}>
+        <Fab variant='extended' color='primary' onClick={() => setIsPurchaseAdding(true)}>
+          <AddShoppingCart sx={{ mr: 1 }} />
+          Add purchase
+        </Fab>
+      </Box>
+    )}
   </>)
 }

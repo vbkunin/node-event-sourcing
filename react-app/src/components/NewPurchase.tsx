@@ -4,6 +4,7 @@ import User from '../models/User'
 import { format } from 'date-fns'
 import Client from '../api/Client'
 import Purchase from '../models/Purchase'
+import { SaveAlt } from '@mui/icons-material'
 
 interface PurchaseFormData {
   title: string,
@@ -64,7 +65,7 @@ export default function NewPurchase(props: NewPurchaseProps): React.ReactElement
       .finally(() => setIsLoading(false))
   }
 
-  return (<Box sx={{ mt: 2, mb: 5 }}>
+  return (<Box sx={{ mt: 2, mb: 2 }}>
     <Typography component='h2' variant='h5' sx={{ mb: 2 }}>
       New purchase
     </Typography>
@@ -99,9 +100,10 @@ export default function NewPurchase(props: NewPurchaseProps): React.ReactElement
       />
       <TextField id='date' label='Date' name='date' type='datetime-local' value={purchaseFormData.date}
                  onChange={handleChange} disabled={isLoading} />
-      <Button type='submit' fullWidth variant='contained' sx={{ mt: 3, mb: 2 }}
+      <Button type='submit' fullWidth variant='contained' size='large'
+              startIcon={<SaveAlt/>}
               disabled={isLoading}>
-        Create
+        Save
       </Button>
     </Stack>
   </Box>)

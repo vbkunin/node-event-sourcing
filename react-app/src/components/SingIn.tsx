@@ -45,7 +45,7 @@ function SignIn(props: SignInProps): React.ReactElement {
                    autoComplete='username' autoFocus />
         <TextField margin='normal' required fullWidth name='password' label='Password' type='password' id='password'
                    autoComplete='current-password' />
-        <Button type='submit' fullWidth variant='contained' sx={{ mt: 3, mb: 2 }} disabled={isLoading}>
+        <Button type='submit' fullWidth variant='contained' size='large' sx={{ mt: 3, mb: 2 }} disabled={isLoading}>
           Sign In
         </Button>
         <Grid container>
