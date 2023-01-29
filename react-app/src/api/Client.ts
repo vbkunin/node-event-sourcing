@@ -1,5 +1,6 @@
 import User from '../models/User'
 import Debt from '../models/Debt'
+import Purchase from '../models/Purchase'
 
 interface ListResponseBody<T> {
   entries: Array<T>
@@ -73,6 +74,26 @@ export async function getUsers(): Promise<User[]> {
   return body.entries
 }
 
+export async function createPurchase(purchase: Purchase, payer: User, debtors: User[]): Promise<boolean> {
+  const data = {
+    ...purchase,
+    payer: payer.username,
+    debtors: debtors.map(debtor => debtor.username)
+  }
+
+  const res: Response = await fetch(`${process.env.REACT_APP_COMMAND_API_URL}/v1/purchase`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  }).then(validateResponse)
+
+  const body: AcceptedResponseBody = await res.json()
+
+  return !!body.acceptedAt
+}
+
 export async function payoffDebts(user: User, debts: Debt[]): Promise<boolean> {
   const data = { debts: debts.map<string>(debt => debt.id) }
 
@@ -105,5 +126,5 @@ export async function acceptDebts(user: User, debts: Debt[]): Promise<boolean> {
   return !!body.acceptedAt
 }
 
-const Client = { authUser, getUsers, getUserCredits, getUserDebts, payoffDebts, acceptDebts }
+const Client = { authUser, getUsers, getUserCredits, getUserDebts, createPurchase, payoffDebts, acceptDebts }
 export default Client
