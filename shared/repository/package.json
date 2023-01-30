@@ -1,0 +1,14 @@
+{
+  "name": "buns-with-raisins-repository-module",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "dependencies": {
+    "md5": "^2.3.0",
+    "pg": "^8.8.0"
+  },
+  "devDependencies": {
+    "@types/md5": "^2.3.2",
+    "@types/pg": "^8.6.6"
+  }
+}

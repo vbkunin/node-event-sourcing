@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 import express from 'express'
 import cors from 'cors'
 import { pool } from './modules/pg/index.js'
-import { PurchaseRepository, DebtRepository, UserRepository } from './modules/repository/index.js'
+import { PurchaseRepository, DebtRepository, UserRepository } from '../../shared/repository/dist/index.js'
 import { getDebtRoutes, getPurchaseRoutes, getUserRoutes } from './router.js'
 
 dotenv.config()

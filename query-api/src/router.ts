@@ -1,11 +1,11 @@
 import { Request, Response, Router } from 'express'
-import { Debt, Purchase, User } from './modules/repository/models.js'
 import {
+  Debt, Purchase, User,
   DebtCondition,
   PurchaseCondition,
   Repository,
   UserCondition,
-} from './modules/repository/index.js'
+} from '../../shared/repository/dist/index.js'
 
 enum Path {
   v1_purchase_list = '/purchase',
@@ -101,13 +101,13 @@ export const getDebtRoutes = (repo: Repository<Debt, DebtCondition>): Router => 
   return router
 }
 
-export const getUserRoutes = (repo: Repository<User,  UserCondition>): Router => {
-  
+export const getUserRoutes = (repo: Repository<User, UserCondition>): Router => {
+
   const router = Router()
 
   router.get(Path.v1_user_list, async (req: Request<undefined, undefined, undefined, UserListQuery>, res: Response<ListResponseBody<User>>, next) => {
     const searchCondition: UserCondition = {
-      username: req.query.username
+      username: req.query.username,
     }
     const userList = await repo.find(searchCondition)
     res.status(200).json({ entries: userList })
@@ -120,9 +120,9 @@ export const getUserRoutes = (repo: Repository<User,  UserCondition>): Router =>
     return next()
   })
 
-  router.get(Path.v1_user_login, async (req: Request<{ username: string }>, res: Response<SingleResponseBody<User>|ErrorResponseBody>, next) => {
+  router.get(Path.v1_user_login, async (req: Request<{ username: string }>, res: Response<SingleResponseBody<User> | ErrorResponseBody>, next) => {
     const searchCondition: UserCondition = {
-      username: req.params.username
+      username: req.params.username,
     }
     const userList = await repo.find(searchCondition, 1)
     if (userList[0]) {
