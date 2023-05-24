@@ -1,6 +1,6 @@
 import { User } from '../../models.js'
 import { RepositoryImpl, RepositoryError } from './RepositoryImpl.js'
-import { SearchCondition } from '../../Repository.js'
+import { SearchCondition } from '../../ReadRepository.js'
 
 interface UserRow {
   id: string

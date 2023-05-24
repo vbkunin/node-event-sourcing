@@ -1,4 +1,4 @@
-export interface Repository<T, C extends SearchCondition = SearchCondition> {
+export interface ReadRepository<T, C extends SearchCondition = SearchCondition> {
   getCount(condition?: C): Promise<number>
 
   find(condition?: C, limit?: number, offset?: number): Promise<T[]>

@@ -19,14 +19,15 @@
     "debtors": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "format": "uuid"
       },
       "minItems": 1,
       "uniqueItems": true
     },
     "payer": {
       "type": "string",
-      "minLength": 1
+      "format": "uuid"
     }
   },
   "required": [

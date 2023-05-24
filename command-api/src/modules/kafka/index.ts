@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import { ConnectEvent, Kafka as KafkaJS, KafkaConfig, ProducerConfig, RecordMetadata } from 'kafkajs'
 import { CloudEvent } from 'cloudevents'
-import { EventData, EventType } from './models.js'
+import { EventData, EventType } from '../../../../shared/kafka/dist/index.js'
 import { Kafka as KafkaCE } from 'cloudevents/dist/message/kafka/index.js'
 
 dotenv.config()
@@ -49,3 +49,5 @@ export async function produce<T extends EventData>(type: EventType, data: T, top
     ],
   }).then((recordMetadata: RecordMetadata[]) => recordMetadata.pop())
 }
+
+export * from '../../../../shared/kafka/dist/index.js'

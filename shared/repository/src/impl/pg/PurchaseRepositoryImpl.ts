@@ -1,6 +1,10 @@
 import { Purchase } from '../../models.js'
 import { RepositoryImpl, RepositoryError } from './RepositoryImpl.js'
-import { SearchCondition } from '../../Repository.js'
+import { SearchCondition } from '../../ReadRepository.js'
+import { WriteRepository } from '../../WriteRepository.js'
+import { QueryConfig } from 'pg'
+import md5 from 'md5'
+import * as punycode from 'punycode'
 
 interface PurchaseRow {
   id: string,
@@ -19,7 +23,7 @@ export interface PurchaseCondition extends SearchCondition {
   dateTo?: Date | string
 }
 
-export class PurchaseRepositoryImpl extends RepositoryImpl<Purchase, PurchaseRow, PurchaseCondition> {
+export class PurchaseRepositoryImpl extends RepositoryImpl<Purchase, PurchaseRow, PurchaseCondition> implements WriteRepository<Purchase> {
   private countQueryText = `SELECT count(entry.id)::numeric::integer AS count
                             FROM purchase AS entry
                                      INNER JOIN "user" AS payer ON entry.payer_id = payer.id`
@@ -86,4 +90,21 @@ export class PurchaseRepositoryImpl extends RepositoryImpl<Purchase, PurchaseRow
     }
   }
 
+  protected entryToValues(entry: Purchase): [string, Date, number, string] {
+    return [entry.title, entry.date, entry.amount, entry.payer.id]
+  }
+
+  public async create(entry: Purchase): Promise<Purchase> {
+    // const text = `${this.getCreateQueryText()}`
+    const text = `INSERT INTO purchase (title, "date", amount, payer_id)
+                  VALUES ($1, $2, $3, $4)
+                  RETURNING *`
+    const queryConfig: QueryConfig<[string, Date, number, string]> = {
+      // name: `${this.constructor.name}_createEntry_${md5(text)}`,
+      text,
+      values: this.entryToValues(entry),
+    }
+    return this.query(queryConfig)
+      .then(res => this.getById(res[0].id as string))
+  }
 }

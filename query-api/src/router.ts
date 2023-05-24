@@ -3,7 +3,7 @@ import {
   Debt, Purchase, User,
   DebtCondition,
   PurchaseCondition,
-  Repository,
+  ReadRepository,
   UserCondition,
 } from '../../shared/repository/dist/index.js'
 
@@ -51,7 +51,7 @@ interface ErrorResponseBody {
 
 // fixme: Search condition interfaces should not be exported from specific repository implementations.
 //  Can we combine them with the query parameters interface or do they have different areas of responsibility?
-export const getPurchaseRoutes = (repo: Repository<Purchase, PurchaseCondition>): Router => {
+export const getPurchaseRoutes = (repo: ReadRepository<Purchase, PurchaseCondition>): Router => {
 
   const router = Router()
 
@@ -79,7 +79,7 @@ export const getPurchaseRoutes = (repo: Repository<Purchase, PurchaseCondition>)
   return router
 }
 
-export const getDebtRoutes = (repo: Repository<Debt, DebtCondition>): Router => {
+export const getDebtRoutes = (repo: ReadRepository<Debt, DebtCondition>): Router => {
 
   const router = Router()
 
@@ -101,7 +101,7 @@ export const getDebtRoutes = (repo: Repository<Debt, DebtCondition>): Router => 
   return router
 }
 
-export const getUserRoutes = (repo: Repository<User, UserCondition>): Router => {
+export const getUserRoutes = (repo: ReadRepository<User, UserCondition>): Router => {
 
   const router = Router()
 

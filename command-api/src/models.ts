@@ -3,12 +3,12 @@ export interface PurchaseCreateBody {
   payer: string,
   debtors: string[]
   title?: string,
-  date?: Date | string,
+  date?: string,
 }
 
 export interface PurchaseUpdateBody {
   title?: string,
-  date?: Date | string,
+  date?: string,
 }
 
 export interface DebtsBody {
@@ -16,7 +16,7 @@ export interface DebtsBody {
 }
 
 export interface AcceptResponseBody {
-  acceptedAt: Date
+  acceptedAt: string
 }
 
 export interface ErrorResponseBody {

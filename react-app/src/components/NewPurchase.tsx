@@ -59,6 +59,7 @@ export default function NewPurchase(props: NewPurchaseProps): React.ReactElement
             ...prevState,
             title: '',
             amount: '',
+            date: format(new Date(), 'yyyy-MM-dd\'T\'HH:mm'),
           }
         },
       ))
@@ -101,7 +102,7 @@ export default function NewPurchase(props: NewPurchaseProps): React.ReactElement
       <TextField id='date' label='Date' name='date' type='datetime-local' value={purchaseFormData.date}
                  onChange={handleChange} disabled={isLoading} />
       <Button type='submit' fullWidth variant='contained' size='large'
-              startIcon={<SaveAlt/>}
+              startIcon={<SaveAlt />}
               disabled={isLoading}>
         Save
       </Button>

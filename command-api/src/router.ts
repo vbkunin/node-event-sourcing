@@ -3,7 +3,7 @@ import { Path } from './path.js'
 import { AcceptResponseBody, DebtsBody, ErrorResponseBody, PurchaseCreateBody, PurchaseUpdateBody } from './models.js'
 import { validate, ValidationError } from './modules/schemavalidator/index.js'
 import { produce } from './modules/kafka/index.js'
-import { EventType, PurchaseCreateEventData, PurchaseUpdateEventData } from './modules/kafka/models.js'
+import { EventType, PurchaseCreateEventData, PurchaseUpdateEventData, DebtIdsListEventData } from './modules/kafka/index.js'
 import { ErrorRequestHandler } from 'express-serve-static-core'
 
 const router = Router()
@@ -14,12 +14,12 @@ router.post(Path.v1_purchase_create, async (req: Request<any, any, PurchaseCreat
     validate(Path.v1_purchase_create, req.body)
     const recordMetadata = await produce<PurchaseCreateEventData>(EventType.bwr_purchase_created, {
       title: 'Untitled purchase',
-      date: new Date(),
+      date: (new Date()).toISOString(),
       ...req.body,
     })
     console.log(recordMetadata) // todo: add logging
     // const date = new Date(recordMetadata.timestamp) // todo: compute retry-after date from timestamp
-    res.status(202).setHeader('Retry-After', 5).json({ acceptedAt: new Date() })
+    res.status(202).setHeader('Retry-After', 5).json({ acceptedAt:  (new Date()).toISOString() })
   } catch (err) {
     next(err)
   }
@@ -33,7 +33,7 @@ router.patch(Path.v1_purchase_update, async (req: Request<{ id: string }, any, P
       id: req.params.id,
     })
     console.log(recordMetadata)
-    res.status(202).setHeader('Retry-After', 5).json({ acceptedAt: new Date() })
+    res.status(202).setHeader('Retry-After', 5).json({ acceptedAt:  (new Date()).toISOString() })
   } catch (e) {
     return next(e)
   }
@@ -44,9 +44,9 @@ router.post([Path.v1_debts_payoff, Path.v1_debts_accept], async (req: Request<an
   try {
     validate(Path.v1_debts_payoff, req.body)
     const ceType = req.path === Path.v1_debts_payoff ? EventType.bwr_debts_paid : EventType.bwr_debts_accepted
-    const recordMetadata = await produce(ceType, req.body.debts)
+    const recordMetadata = await produce<DebtIdsListEventData>(ceType, { debts: req.body.debts })
     console.log(recordMetadata)
-    res.status(202).setHeader('Retry-After', 5).json({ acceptedAt: new Date() })
+    res.status(202).setHeader('Retry-After', 5).json({ acceptedAt: (new Date()).toISOString() })
   } catch (e) {
     return next(e)
   }

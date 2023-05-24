@@ -4,7 +4,7 @@ export interface User {
 }
 
 export interface Purchase {
-  id: string,
+  id?: string,
   title: string,
   date: Date,
   amount: number,
@@ -12,7 +12,7 @@ export interface Purchase {
 }
 
 export interface Debt {
-  id: string,
+  id?: string,
   purchaseId: string,
   purchaseTitle: string,
   purchaseDate: Date,

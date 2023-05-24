@@ -77,8 +77,8 @@ export async function getUsers(): Promise<User[]> {
 export async function createPurchase(purchase: Purchase, payer: User, debtors: User[]): Promise<boolean> {
   const data = {
     ...purchase,
-    payer: payer.username,
-    debtors: debtors.map(debtor => debtor.username)
+    payer: payer.id,
+    debtors: debtors.map(debtor => debtor.id)
   }
 
   const res: Response = await fetch(`${process.env.REACT_APP_COMMAND_API_URL}/v1/purchase`, {

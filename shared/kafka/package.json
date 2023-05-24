@@ -1,0 +1,6 @@
+{
+  "name": "buns-with-raisins-shared-kafka-module",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js"
+}
